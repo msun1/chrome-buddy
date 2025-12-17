@@ -1,0 +1,19 @@
+#virtual-pet {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+
+  width: 80px;
+  height: 80px;
+
+  z-index: 999999;
+  pointer-events: auto;
+  cursor: pointer;
+
+  user-select: none;
+}
+
+#virtual-pet img {
+  width: 100%;
+  height: 100%;
+}

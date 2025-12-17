@@ -1,0 +1,32 @@
+{
+  "name": "Chrome Buddy",
+  "description": "A Chrome extension that adds a virtual pet with an interactive “home” interface, reacts to user screen time and behavior, and integrates with Google Calendar to display (and create) events through pet interactions.",
+  "version": "1.0",
+  "manifest_version": 3,
+
+  "permissions": ["storage", "idle", "tabs"],
+
+  "background": {
+    "service_worker": "src/background/serviceWorker.js"
+  },
+
+   "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["src/content/pet.js"],
+      "css": ["src/content/pet.css"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/assets/pet.png"],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ],
+
+  "icons": {
+    "16": "src/assets/pet.png",
+    "48": "src/assets/pet.png",
+    "128": "src/assets/pet.png"
+  }
+}
