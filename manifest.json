@@ -10,7 +10,7 @@
     "service_worker": "src/background/serviceWorker.js"
   },
 
-   "content_scripts": [
+  "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
       "js": ["src/content/pet.js"],
@@ -19,14 +19,21 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["src/assets/pet.png"],
+      "resources": [
+        "src/assets/pet_front.png",
+        "src/assets/pet_left1.png",
+        "src/assets/pet_left2.png",
+        "src/assets/pet_left3.png",
+        "src/assets/pet_right1.png",
+        "src/assets/pet_right2.png",
+        "src/assets/pet_right3.png"
+      ],
       "matches": ["http://*/*", "https://*/*"]
     }
   ],
-
   "icons": {
-    "16": "src/assets/pet.png",
-    "48": "src/assets/pet.png",
-    "128": "src/assets/pet.png"
+    "16": "src/assets/pet_front.png",
+    "48": "src/assets/pet_front.png",
+    "128": "src/assets/pet_front.png"
   }
 }
