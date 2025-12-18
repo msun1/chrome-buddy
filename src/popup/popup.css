@@ -1,0 +1,12 @@
+body {
+  min-width: 160px;
+  padding: 10px;
+  font-family: system-ui, sans-serif;
+}
+
+button {
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 6px;
+  cursor: pointer;
+}

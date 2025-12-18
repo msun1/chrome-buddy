@@ -17,6 +17,9 @@
       "css": ["src/content/pet.css"]
     }
   ],
+  "action": {
+    "default_popup": "src/popup/popup.html"
+  },
   "web_accessible_resources": [
     {
       "resources": [
