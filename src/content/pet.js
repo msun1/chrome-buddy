@@ -1,4 +1,6 @@
+// Prevent duplicate pets
 if (!document.getElementById("virtual-pet")) {
+  // ---------- CREATE PET ----------
   const pet = document.createElement("div");
   pet.id = "virtual-pet";
 
@@ -9,16 +11,24 @@ if (!document.getElementById("virtual-pet")) {
   pet.appendChild(img);
   document.body.appendChild(pet);
 
+  // ---------- CONFIG ----------
   const MIN_X = 20;
   const MAX_X = 180;
+  const MOVE_SPEED = 5.5;
+  const FRAME_INTERVAL = 400;
+  const FRONT_PAUSE_TICKS = 4;
+
+  // ---------- STATE ----------
   let x = MIN_X;
-  let direction = 1;
+  let direction = 1; // 1 = right, -1 = left
   let frameIndex = 0;
   let frontCooldown = 0;
   let isPaused = false;
   let walkInterval = null;
 
+  // ---------- FRAMES ----------
   const frames = {
+    front: chrome.runtime.getURL("src/assets/pet_front.png"),
     left: [
       chrome.runtime.getURL("src/assets/pet_left1.png"),
       chrome.runtime.getURL("src/assets/pet_left2.png"),
@@ -29,21 +39,28 @@ if (!document.getElementById("virtual-pet")) {
       chrome.runtime.getURL("src/assets/pet_right2.png"),
       chrome.runtime.getURL("src/assets/pet_right3.png"),
     ],
-    front: chrome.runtime.getURL("src/assets/pet_front.png"),
   };
 
+  // ---------- INITIAL POSITION ----------
   pet.style.left = `${x}px`;
   pet.style.bottom = "20px";
 
+  // ---------- WALK LOGIC ----------
   function startWalking() {
     if (walkInterval) return;
 
     walkInterval = setInterval(() => {
-      x += direction * 5.5;
+      x += direction * MOVE_SPEED;
 
-      if (x <= MIN_X || x >= MAX_X) {
-        direction *= -1;
-        frontCooldown = 4;
+      if (x <= MIN_X) {
+        x = MIN_X;
+        direction = 1;
+        frontCooldown = FRONT_PAUSE_TICKS;
+        frameIndex = 0;
+      } else if (x >= MAX_X) {
+        x = MAX_X;
+        direction = -1;
+        frontCooldown = FRONT_PAUSE_TICKS;
         frameIndex = 0;
       }
 
@@ -56,28 +73,24 @@ if (!document.getElementById("virtual-pet")) {
         img.src =
           direction === 1 ? frames.right[frameIndex] : frames.left[frameIndex];
 
-        frameIndex = (frameIndex + 1) % 3;
+        frameIndex = (frameIndex + 1) % frames.left.length;
       }
-    }, 400);
+    }, FRAME_INTERVAL);
   }
 
   function stopWalking() {
+    if (!walkInterval) return;
     clearInterval(walkInterval);
     walkInterval = null;
     img.src = frames.front;
   }
 
-  // Start moving initially
+  // ---------- START ----------
   startWalking();
 
-  // Toggle pause on click
+  // ---------- CLICK: PAUSE / RESUME ----------
   pet.addEventListener("click", () => {
     isPaused = !isPaused;
-
-    if (isPaused) {
-      stopWalking();
-    } else {
-      startWalking();
-    }
+    isPaused ? stopWalking() : startWalking();
   });
 }
