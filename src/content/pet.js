@@ -122,5 +122,28 @@ if (!document.getElementById("virtual-pet")) {
       pet.style.display = "block";
       if (!isSleeping) startWalking();
     }
+    // NEW: buddy speech
+    if (message.action === "buddy-say") {
+      // If pet is hidden, optionally ignore, or show it then speak
+      if (isHidden) return;
+      say(message.text || "…");
+    }
   });
+
+   // SPEECH BUBBLE
+  const bubble = document.createElement("div");
+  bubble.id = "pet-bubble";
+  bubble.style.display = "none";
+  pet.appendChild(bubble);
+
+  function say(text, ms = 2500) {
+    bubble.textContent = text;
+    bubble.style.display = "block";
+    clearTimeout(say._t);
+    say._t = setTimeout(() => {
+      bubble.style.display = "none";
+    }, ms);
+  }
 }
+
+
