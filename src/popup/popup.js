@@ -1,33 +1,38 @@
-const sleepBtn = document.getElementById("sleep");
-const wakeBtn = document.getElementById("wake");
+// src/popup/popup.js
+const togglePetBtn = document.getElementById("toggle-pet");
+let petVisible = true; // Tracks current state
 
-function send(action) {
-  chrome.runtime.sendMessage({ action });
+function sendToPet(message) {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs[0];
+    if (!tab) return;
+
+    chrome.tabs.sendMessage(tab.id, message, () => {
+      // Ignore runtime errors. Pet may not exist on this tab yet.
+      // We update button text based on our local state.
+    });
+  });
 }
 
-function updateButtons(state) {
-  if (state === "sleeping") {
-    sleepBtn.style.display = "none";
-    wakeBtn.style.display = "block";
-  } else {
-    sleepBtn.style.display = "block";
-    wakeBtn.style.display = "none";
+// Listen for hidden event from pet (triple click)
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.action === "pet-hidden") {
+    petVisible = false;
+    togglePetBtn.textContent = "Show Pet";
   }
-}
-
-chrome.storage.local.get("petState", ({ petState }) => {
-  updateButtons(petState || "awake");
 });
 
-sleepBtn.onclick = () => {
-  send("sleep");
-  updateButtons("sleeping");
-};
+togglePetBtn.addEventListener("click", () => {
+  petVisible = !petVisible;
+  togglePetBtn.textContent = petVisible ? "Hide Pet" : "Show Pet";
+  sendToPet({ action: petVisible ? "show-pet" : "hide-pet" });
+  chrome.storage.local.set({ petVisible });
+});
 
-wakeBtn.onclick = () => {
-  send("wake");
-  updateButtons("awake");
-};
-
-document.getElementById("play").onclick = () => send("play");
-document.getElementById("home").onclick = () => send("home");
+// On popup open
+chrome.storage.local.get("petVisible", (data) => {
+  if (data.petVisible === false) {
+    petVisible = false;
+    togglePetBtn.textContent = "Show Pet";
+  }
+});
