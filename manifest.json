@@ -18,7 +18,8 @@
     }
   ],
   "action": {
-    "default_popup": "src/popup/popup.html"
+    "default_popup": "src/popup/popup.html",
+    "default_icon": "src/assets/pet_front.png"
   },
   "web_accessible_resources": [
     {
