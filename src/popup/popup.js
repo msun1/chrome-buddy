@@ -1,22 +1,20 @@
 // src/popup/popup.js
 const togglePetBtn = document.getElementById("toggle-pet");
-let petVisible = true; // Tracks current state
+const increaseBtn = document.getElementById("increase-size");
+const decreaseBtn = document.getElementById("decrease-size");
+
+let petVisible = true;
 
 function sendToPet(message) {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    const tab = tabs[0];
-    if (!tab) return;
-
-    chrome.tabs.sendMessage(tab.id, message, () => {
-      // Ignore runtime errors. Pet may not exist on this tab yet.
-      // We update button text based on our local state.
-    });
+    if (!tabs[0]) return;
+    chrome.tabs.sendMessage(tabs[0].id, message);
   });
 }
 
-// Listen for hidden event from pet (triple click)
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.action === "pet-hidden") {
+// Sync state on popup open
+chrome.storage.local.get("petVisible", (data) => {
+  if (data.petVisible === false) {
     petVisible = false;
     togglePetBtn.textContent = "Show Pet";
   }
@@ -25,14 +23,14 @@ chrome.runtime.onMessage.addListener((message) => {
 togglePetBtn.addEventListener("click", () => {
   petVisible = !petVisible;
   togglePetBtn.textContent = petVisible ? "Hide Pet" : "Show Pet";
-  sendToPet({ action: petVisible ? "show-pet" : "hide-pet" });
   chrome.storage.local.set({ petVisible });
+  sendToPet({ action: petVisible ? "show-pet" : "hide-pet" });
 });
 
-// On popup open
-chrome.storage.local.get("petVisible", (data) => {
-  if (data.petVisible === false) {
-    petVisible = false;
-    togglePetBtn.textContent = "Show Pet";
-  }
+increaseBtn.addEventListener("click", () => {
+  sendToPet({ action: "increase-size" });
+});
+
+decreaseBtn.addEventListener("click", () => {
+  sendToPet({ action: "decrease-size" });
 });

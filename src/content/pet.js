@@ -15,6 +15,10 @@ if (!document.getElementById("virtual-pet")) {
   const INTERVAL = 400;
   const FRONT_PAUSE = 3;
 
+  const MIN_SIZE = 0.6;
+  const MAX_SIZE = 1.6;
+  const SIZE_STEP = 0.1;
+
   // ---------- STATE ----------
   let x = MIN_X;
   let direction = 1;
@@ -23,6 +27,7 @@ if (!document.getElementById("virtual-pet")) {
   let isSleeping = false;
   let isHidden = false;
   let walkInterval = null;
+  let petScale = 1;
 
   const frames = {
     front: chrome.runtime.getURL("src/assets/pet_front.png"),
@@ -38,6 +43,21 @@ if (!document.getElementById("virtual-pet")) {
       chrome.runtime.getURL("src/assets/pet_right3.png"),
     ],
   };
+
+  function applySize() {
+    pet.style.transform = `scale(${petScale})`;
+  }
+
+  chrome.storage.local.get(["petSize", "petVisible"], (data) => {
+    if (data.petSize) {
+      petScale = data.petSize;
+      applySize();
+    }
+    if (data.petVisible === false) {
+      isHidden = true;
+      pet.style.display = "none";
+    }
+  });
 
   function startWalking() {
     if (walkInterval || isHidden || isSleeping) return;
@@ -108,19 +128,32 @@ if (!document.getElementById("virtual-pet")) {
     }, 300);
   });
 
-  // ---------- MESSAGE HANDLER FROM POPUP ----------
+  // ---------- POPUP MESSAGES ----------
   chrome.runtime.onMessage.addListener((message) => {
-    if (!pet) return;
-
     if (message.action === "hide-pet") {
       isHidden = true;
       stopWalking();
       pet.style.display = "none";
+      chrome.storage.local.set({ petVisible: false });
     }
+
     if (message.action === "show-pet") {
       isHidden = false;
       pet.style.display = "block";
       if (!isSleeping) startWalking();
+      chrome.storage.local.set({ petVisible: true });
+    }
+
+    if (message.action === "increase-size") {
+      petScale = Math.min(MAX_SIZE, petScale + SIZE_STEP);
+      applySize();
+      chrome.storage.local.set({ petSize: petScale });
+    }
+
+    if (message.action === "decrease-size") {
+      petScale = Math.max(MIN_SIZE, petScale - SIZE_STEP);
+      applySize();
+      chrome.storage.local.set({ petSize: petScale });
     }
   });
 }
