@@ -19,7 +19,7 @@
   ],
   "action": {
     "default_popup": "src/popup/popup.html",
-    "default_icon": "src/assets/pet_front.png"
+    "default_icon": "src/assets/pet_right1.png"
   },
   "web_accessible_resources": [
     {
@@ -30,14 +30,15 @@
         "src/assets/pet_left3.png",
         "src/assets/pet_right1.png",
         "src/assets/pet_right2.png",
-        "src/assets/pet_right3.png"
+        "src/assets/pet_right3.png",
+        "src/assets/pet_sleep.png"
       ],
       "matches": ["http://*/*", "https://*/*"]
     }
   ],
   "icons": {
-    "16": "src/assets/pet_front.png",
-    "48": "src/assets/pet_front.png",
-    "128": "src/assets/pet_front.png"
+    "16": "src/assets/pet_right1.png",
+    "48": "src/assets/pet_right1.png",
+    "128": "src/assets/pet_right1.png"
   }
 }

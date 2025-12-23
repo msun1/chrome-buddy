@@ -4,9 +4,28 @@ if (!document.getElementById("virtual-pet")) {
   pet.id = "virtual-pet";
 
   const img = document.createElement("img");
-  img.src = chrome.runtime.getURL("src/assets/pet_front.png");
+  img.alt = "Virtual Pet";
   pet.appendChild(img);
   document.body.appendChild(pet);
+
+  // ---------- LAYOUT (LOCKED) ----------
+  let x = 20;
+
+  pet.style.position = "fixed";
+  pet.style.bottom = "20px";
+  pet.style.left = `${x}px`;
+  pet.style.width = "120px"; // LOCKED container size
+  pet.style.height = "120px";
+  pet.style.pointerEvents = "auto";
+  pet.style.zIndex = "9999";
+
+  img.style.position = "absolute";
+  img.style.bottom = "0";
+  img.style.left = "50%";
+  img.style.transform = "translateX(-50%)";
+  img.style.width = "100%";
+  img.style.height = "auto";
+  img.style.userSelect = "none";
 
   // ---------- CONFIG ----------
   const MIN_X = 20;
@@ -20,7 +39,6 @@ if (!document.getElementById("virtual-pet")) {
   const SIZE_STEP = 0.1;
 
   // ---------- STATE ----------
-  let x = MIN_X;
   let direction = 1;
   let frameIndex = 0;
   let frontCooldown = 0;
@@ -29,6 +47,7 @@ if (!document.getElementById("virtual-pet")) {
   let walkInterval = null;
   let petScale = 1;
 
+  // ---------- FRAMES ----------
   const frames = {
     front: chrome.runtime.getURL("src/assets/pet_front.png"),
     sleep: chrome.runtime.getURL("src/assets/pet_sleep.png"),
@@ -44,23 +63,43 @@ if (!document.getElementById("virtual-pet")) {
     ],
   };
 
+  // ---------- HELPERS ----------
   function applySize() {
     pet.style.transform = `scale(${petScale})`;
   }
 
+  function showFront() {
+    img.src = frames.front;
+    img.style.width = "100%";
+  }
+
+  function showSleep() {
+    img.src = frames.sleep;
+    img.style.width = "150px"; // sleep-only resize
+  }
+
+  function showWalkFrame() {
+    img.style.width = "100%";
+    img.src =
+      direction === 1 ? frames.right[frameIndex] : frames.left[frameIndex];
+  }
+
+  // ---------- STORAGE LOAD ----------
   chrome.storage.local.get(["petSize", "petVisible"], (data) => {
     if (data.petSize) {
       petScale = data.petSize;
       applySize();
     }
+
     if (data.petVisible === false) {
       isHidden = true;
       pet.style.display = "none";
     }
   });
 
+  // ---------- WALKING ----------
   function startWalking() {
-    if (walkInterval || isHidden || isSleeping) return;
+    if (walkInterval || isSleeping || isHidden) return;
 
     walkInterval = setInterval(() => {
       x += direction * SPEED;
@@ -74,11 +113,10 @@ if (!document.getElementById("virtual-pet")) {
       pet.style.left = `${x}px`;
 
       if (frontCooldown > 0) {
-        img.src = frames.front;
+        showFront();
         frontCooldown--;
       } else {
-        img.src =
-          direction === 1 ? frames.right[frameIndex] : frames.left[frameIndex];
+        showWalkFrame();
         frameIndex = (frameIndex + 1) % 3;
       }
     }, INTERVAL);
@@ -89,6 +127,7 @@ if (!document.getElementById("virtual-pet")) {
     walkInterval = null;
   }
 
+  showFront();
   startWalking();
 
   // ---------- CLICK HANDLING ----------
@@ -101,28 +140,28 @@ if (!document.getElementById("virtual-pet")) {
     if (clickTimer) clearTimeout(clickTimer);
 
     clickTimer = setTimeout(() => {
+      // TRIPLE CLICK → HIDE
       if (clickCount >= 3) {
-        // TRIPLE CLICK → HIDE pet
         isHidden = true;
         stopWalking();
         pet.style.display = "none";
-        chrome.runtime.sendMessage({ action: "pet-hidden" });
-
-        // Update popup
-        chrome.runtime.sendMessage({ action: "pet-hidden" });
         chrome.storage.local.set({ petVisible: false });
-      } else if (clickCount === 1) {
-        // SINGLE CLICK → toggle sleep
+        chrome.runtime.sendMessage({ action: "pet-hidden" });
+      }
+
+      // SINGLE CLICK → TOGGLE SLEEP
+      else if (clickCount === 1) {
         if (isSleeping) {
           isSleeping = false;
-          img.src = frames.front;
+          showFront();
           startWalking();
         } else {
           isSleeping = true;
           stopWalking();
-          img.src = frames.sleep;
+          showSleep();
         }
       }
+
       clickCount = 0;
       clickTimer = null;
     }, 300);
